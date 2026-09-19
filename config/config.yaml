@@ -1,0 +1,134 @@
+crawler:
+  # For NewsNow we intentionally force the Latest tab (`type=ln`).
+  # The backend discovery and stop conditions are designed around the latest-feed cursor model.
+  # Using Top or Popular would add complexity and weaken duplicate/termination semantics.
+  start_url: "https://www.newsnow.co.uk/h/Sport/Football?type=ln"
+  
+  # Selector for the article links on the list view page
+  content_link_selector: "a[href*='https://c.newsnow.co.uk/A/']"
+  
+  load_more_selector: "//span[text()='View more headlines']"
+  navigation_timeout: 60000 # milliseconds
+  max_wait_time: 5000 # milliseconds for dynamic elements
+  delay_between_requests_s: 5 # in seconds
+  duplicate_ratio_threshold: 0.8
+  max_empty_batches: 2
+  semantic_duplicate_window_hours: 72
+  semantic_similarity:
+    embedding:
+      enabled: true
+      provider: "hashing"
+      dimensions: 128
+      near_duplicate_threshold: 0.82
+      same_story_threshold: 0.62
+  retry_attempts:
+    discovery: 2
+    final_page_fetch: 2
+    extraction: 2
+  
+  redirect:
+    enabled: true # Master switch for redirect handling
+    strategy: 'auto' # 'auto' or 'button_click'
+    button_selector: '#final-link-button' # Only used for 'button_click' strategy
+
+# ---------------------------------------------------------------------------
+# URL Capture – lightweight HTTP-only multi-source collector
+# ---------------------------------------------------------------------------
+# Run with:  python -m src.url_capture
+#
+# Each run:
+#   1. Fetches articles from all sources within time_window_hours.
+#   2. Stops a source once an article older than the window (or cursor) is hit.
+#   3. type: "club"   → writes {ClubName}_{YYYYMMDDhh}.txt  (all URLs)
+#      type: "league" → writes {League}_{YYYYMMDDhh}.txt   (URLs NOT already in any club file)
+#   4. Saves newest-article metadata per source to output/cursor.json
+#      so the next run only collects genuinely new articles.
+# ---------------------------------------------------------------------------
+url_capture:
+  time_window_hours: 12        # collect articles published within the last N hours (Latest tab)
+  top_time_window_hours: 24   # collect articles within the last N hours for the Top tab
+  output_dir: "output"        # directory for .txt output and cursor.json
+  proxy: ""                   # optional HTTP proxy (e.g., http://user:pass@host:port)
+  sources:
+    # -------------------------------------------------------------------
+    # CLB LỚN (type: club) – mỗi CLB xuất ra file riêng, toàn bộ URL
+    # -------------------------------------------------------------------
+    - url: "https://www.newsnow.co.uk/h/Sport/Football/La+Liga/Barcelona?type=ln"
+      league: "Barcelona"
+      type: "club"
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/La+Liga/Real+Madrid?type=ln"
+    #   league: "Real Madrid"
+    #   type: "club"
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/La+Liga/Atletico+Madrid?type=ln"
+    #   league: "Atletico Madrid"
+    #   type: "club"
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/Bundesliga/Bayern+Munich?type=ln"
+    #   league: "Bayern Munich"
+    #   type: "club"
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/Bundesliga/Borussia+Dortmund?type=ln"
+    #   league: "Borussia Dortmund"
+    #   type: "club"
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/Premier+League/Manchester+United?type=ln"
+    #   league: "Manchester United"
+    #   type: "club"
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/Premier+League/Arsenal?type=ln"
+    #   league: "Arsenal"
+    #   type: "club"
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/Premier+League/Liverpool?type=ln"
+    #   league: "Liverpool"
+    #   type: "club"
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/Premier+League/Chelsea?type=ln"
+    #   league: "Chelsea"
+    #   type: "club"
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/Premier+League/Manchester+City?type=ln"
+    #   league: "Manchester City"
+    #   type: "club"
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/Premier+League/Tottenham+Hotspur?type=ln"
+    #   league: "Tottenham Hotspur"
+    #   type: "club"
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/Serie+A/Juventus?type=ln"
+    #   league: "Juventus"
+    #   type: "club"
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/Serie+A/AC+Milan?type=ln"
+    #   league: "AC Milan"
+    #   type: "club"
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/Serie+A/Inter+Milan?type=ln"
+    #   league: "Inter Milan"
+    #   type: "club"
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/Ligue+1/Paris+Saint-Germain?type=ln"
+    #   league: "Paris Saint-Germain"
+    #   type: "club"
+
+    # # -------------------------------------------------------------------
+    # # LEAGUE (type: league) – URL đã có trong CLB lớn sẽ bị loại bỏ
+    # # -------------------------------------------------------------------
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/Bundesliga?type=ln"
+    #   league: "Bundesliga"
+    #   type: "league"
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/Premier+League?type=ln"
+    #   league: "Premier League"
+    #   type: "league"
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/Serie+A?type=ln"
+    #   league: "Serie A"
+    #   type: "league"
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/La+Liga?type=ln"
+    #   league: "La Liga"
+    #   type: "league"
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/League+One?type=ln"
+    #   league: "League One"
+    #   type: "league"
+
+    # # -------------------------------------------------------------------
+    # # TRANSFER NEWS (type: transfer) – tin chuyển nhượng toàn bộ các CLB
+    # # Output sẽ được ghi vào file riêng: transfer_news_{YYYYMMDDhh}.txt
+    # # -------------------------------------------------------------------
+    # - url: "https://www.newsnow.co.uk/h/Sport/Football/Transfer+News?type=ln"
+    #   league: "Transfer News"
+    #   type: "transfer"
+
+database:
+  path: "data/crawler.db"
+
+ollama:
+  # Assumes Ollama is running on the default localhost:11434
+  model: "llama3.1"

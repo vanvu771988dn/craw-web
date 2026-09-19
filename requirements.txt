@@ -1,0 +1,4 @@
+crawl4ai[all]
+pydantic
+sqlalchemy
+beautifulsoup4

@@ -1,0 +1,26 @@
+[
+  {
+    "case_id": "tracker-resolution-basic",
+    "source": "local_fixture",
+    "publisher": "Example Publisher",
+    "tracker_url": "https://c.newsnow.co.uk/A/1313187102?-833:12",
+    "final_url": "https://www.example.com/story?id=123",
+    "notes": "Tracker HTML exposes clickthroughConfig.url, og:title, and og:image."
+  },
+  {
+    "case_id": "truncated-title-article",
+    "source": "local_fixture",
+    "publisher": "Madrid News",
+    "tracker_url": "https://c.newsnow.co.uk/A/1313187999?-833:12",
+    "final_url": "https://publisher.example.com/football/real-madrid-preview",
+    "notes": "NewsNow title is truncated while publisher title is expanded."
+  },
+  {
+    "case_id": "rewritten-title-article",
+    "source": "local_fixture",
+    "publisher": "Liverpool Echo",
+    "tracker_url": "https://c.newsnow.co.uk/A/1313188000?-833:12",
+    "final_url": "https://publisher.example.com/football/liverpool-transfer-plan",
+    "notes": "Publisher title is rewritten but still semantically aligned with the NewsNow title."
+  }
+]
